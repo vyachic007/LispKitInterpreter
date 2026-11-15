@@ -155,7 +155,7 @@ LispKitConsole
 Пакет проекта:
 
 ```text
-by.slava_borisov.lispkitast
+by.slava_borisov.LispKitInterpreter
 ```
 
 В IntelliJ IDEA или другой Java IDE:

@@ -1,4 +1,4 @@
-package by.slava_borisov.lispkitast;
+package by.slava_borisov.LispKitInterpreter;
 
 import java.util.ArrayList;
 import java.util.List;
