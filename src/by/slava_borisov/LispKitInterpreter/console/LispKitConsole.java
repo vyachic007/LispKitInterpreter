@@ -44,6 +44,10 @@ public class LispKitConsole {
 
                 Evaluator evaluator = new Evaluator(ast);
                 Environment environment = new Environment();
+                environment.define("X", LispValue.cons(
+                        LispValue.symbol("G"),
+                        LispValue.nil()
+                ));
 
                 LispValue result = evaluator.eval(root, environment);
                 int resultRoot = evaluator.toAst(result);
