@@ -1,6 +1,6 @@
 package by.slava_borisov.LispKitInterpreter.ast;
 
-class Cell {
+public class Cell {
     final String atom;
     final int head;
     final int tail;

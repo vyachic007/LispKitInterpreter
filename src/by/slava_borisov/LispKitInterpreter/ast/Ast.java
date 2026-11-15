@@ -1,4 +1,3 @@
-
 package by.slava_borisov.LispKitInterpreter.ast;
 
 import java.util.ArrayList;
@@ -7,20 +6,46 @@ import java.util.Locale;
 import java.util.StringJoiner;
 
 public class Ast {
-    private static final int NIL = -1;
+    public static final int NIL = -1;
 
     private final List<Cell> memory = new ArrayList<>();
     private final List<String> tokens = new ArrayList<>();
     private int tokenPosition;
 
-    int createAtom(String value) {
+    public int createAtom(String value) {
         memory.add(new Cell(value, NIL, NIL));
         return memory.size() - 1;
     }
 
-    int createCons(int head, int tail) {
+    public int createCons(int head, int tail) {
         memory.add(new Cell(null, head, tail));
         return memory.size() - 1;
+    }
+
+    public boolean isAtom(int address) {
+        checkAddress(address);
+        return memory.get(address).isAtom();
+    }
+
+    public String getAtom(int address) {
+        checkAddress(address);
+        Cell cell = memory.get(address);
+
+        if (!cell.isAtom()) {
+            throw new IllegalArgumentException("Узел AST не является атомом");
+        }
+
+        return cell.atom;
+    }
+
+    public int getHead(int address) {
+        checkConsAddress(address);
+        return memory.get(address).head;
+    }
+
+    public int getTail(int address) {
+        checkConsAddress(address);
+        return memory.get(address).tail;
     }
 
     public int parse(String input) {
@@ -345,15 +370,21 @@ public class Ast {
         }
     }
 
-    List<Integer> getElements(int address) {
-        List<Integer> result = new ArrayList<>();
+    private void checkConsAddress(int address) {
+        checkAddress(address);
 
+        if (memory.get(address).isAtom()) {
+            throw new IllegalArgumentException("Узел AST не является CONS-ячейкой");
+        }
+    }
+
+    public List<Integer> getElements(int address) {
+        List<Integer> result = new ArrayList<>();
         int current = address;
 
         while (current != NIL) {
-            checkAddress(current);
+            checkConsAddress(current);
             Cell cell = memory.get(current);
-
             result.add(cell.head);
             current = cell.tail;
         }

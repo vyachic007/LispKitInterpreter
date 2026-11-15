@@ -1,6 +1,9 @@
 package by.slava_borisov.LispKitInterpreter.console;
 
 import by.slava_borisov.LispKitInterpreter.ast.Ast;
+import by.slava_borisov.LispKitInterpreter.interpreter.Environment;
+import by.slava_borisov.LispKitInterpreter.interpreter.Evaluator;
+import by.slava_borisov.LispKitInterpreter.interpreter.LispValue;
 
 import java.util.Scanner;
 
@@ -36,10 +39,27 @@ public class LispKitConsole {
                 System.out.println("Корневой адрес: " + root);
                 ast.printConsTree(root);
 
+                System.out.println("\nЯчейки памяти исходного AST:");
                 ast.printMemory();
 
-                System.out.println("\nРезультат обхода дерева:");
-                System.out.println(ast.restore(root));
+                Evaluator evaluator = new Evaluator(ast);
+                Environment environment = new Environment();
+
+                LispValue result = evaluator.eval(root, environment);
+                int resultRoot = evaluator.toAst(result);
+
+                System.out.println("\nРезультат вычисления:");
+                System.out.println(ast.restore(resultRoot));
+
+                System.out.println("\nЛогическое АСД результата:");
+                ast.printLogicalTree(resultRoot, "", true);
+
+                System.out.println("\nПолное дерево CONS-ячеек результата:");
+                System.out.println("Корневой адрес: " + resultRoot);
+                ast.printConsTree(resultRoot);
+
+                System.out.println("\nИтоговые ячейки памяти:");
+                ast.printMemory();
 
             } catch (IllegalArgumentException e) {
                 System.out.println("\nОшибка: " + e.getMessage());
