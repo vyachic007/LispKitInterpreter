@@ -1,4 +1,6 @@
-package by.slava_borisov.LispKitInterpreter;
+package by.slava_borisov.LispKitInterpreter.console;
+
+import by.slava_borisov.LispKitInterpreter.ast.Ast;
 
 import java.util.Scanner;
 

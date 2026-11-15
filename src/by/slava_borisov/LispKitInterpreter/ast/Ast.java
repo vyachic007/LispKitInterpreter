@@ -1,4 +1,5 @@
-package by.slava_borisov.LispKitInterpreter;
+
+package by.slava_borisov.LispKitInterpreter.ast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class Ast {
         return memory.size() - 1;
     }
 
-    int parse(String input) {
+    public int parse(String input) {
         memory.clear();
         tokens.clear();
         tokenPosition = 0;
@@ -360,7 +361,7 @@ public class Ast {
         return result;
     }
 
-    String restore(int address) {
+    public String restore(int address) {
         if (address == NIL) {
             return "()";
         }
@@ -381,7 +382,7 @@ public class Ast {
         return joiner.toString();
     }
 
-    void printLogicalTree(int address, String prefix, boolean last) {
+    public void printLogicalTree(int address, String prefix, boolean last) {
         String branch = last ? "└── " : "├── ";
 
         if (address == NIL) {
@@ -421,7 +422,7 @@ public class Ast {
         }
     }
 
-    void printConsTree(int address) {
+    public void printConsTree(int address) {
         if (address == NIL) {
             System.out.println("NIL");
             return;
@@ -475,7 +476,7 @@ public class Ast {
                 prefix + (last ? "    " : "│   "));
     }
 
-    void printMemory() {
+    public void printMemory() {
         System.out.println("\nЯчейки памяти:");
 
         if (memory.isEmpty()) {

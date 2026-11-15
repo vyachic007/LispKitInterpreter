@@ -1,4 +1,4 @@
-package by.slava_borisov.LispKitInterpreter;
+package by.slava_borisov.LispKitInterpreter.ast;
 
 class Cell {
     final String atom;
