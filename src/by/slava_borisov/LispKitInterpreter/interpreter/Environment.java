@@ -15,12 +15,12 @@ public class Environment {
         this.parent = parent;
     }
 
-    public void define(String name, LispValue value) {
+    public void define(String name, LispValue value) { //доб переменной в текущ окр-е
         values.put(name, value);
     }
 
     public LispValue lookup(String name) {
-        LispValue value = values.get(name);
+        LispValue value = values.get(name); // Поиск переменной в текущем окружении
 
         if (value != null) {
             return value;

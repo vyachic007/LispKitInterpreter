@@ -14,10 +14,6 @@ public class Evaluator {
     }
 
     public LispValue eval(int address, Environment environment) {
-        if (address == Ast.NIL) {
-            return LispValue.nil();
-        }
-
         if (ast.isAtom(address)) {
             String atom = ast.getAtom(address);
 
@@ -29,15 +25,18 @@ public class Evaluator {
                 return LispValue.symbol("T");
             }
 
+            // Поиск значения переменной в текущем или родительском окружении
             return environment.lookup(atom);
         }
 
         List<Integer> elements = ast.getElements(address);
+
         String operator = ast.getAtom(elements.get(0)).toUpperCase();
 
         switch (operator) {
             case "QUOTE":
                 return quote(elements.get(1));
+
             case "ADD":
             case "SUB":
             case "MUL":
@@ -46,44 +45,56 @@ public class Evaluator {
             case "DIVE":
             case "REM":
                 return arithmetic(elements, environment, operator);
+
             case "EQUAL":
             case "LE":
             case "LEQ":
                 return comparison(elements, environment, operator);
+
             case "CONS":
+                // Создание новой CONS-ячейки из двух вычисленных аргументов
                 return LispValue.cons(
                         eval(elements.get(1), environment),
                         eval(elements.get(2), environment));
+
             case "CAR":
                 return car(eval(elements.get(1), environment));
+
             case "CDR":
                 return cdr(eval(elements.get(1), environment));
+
             case "ATOM":
                 return atom(eval(elements.get(1), environment));
+
             case "COND":
+                // Проверка условия и выбор выражения для вычисления
                 if (isTrue(eval(elements.get(1), environment))) {
                     return eval(elements.get(2), environment);
                 }
                 return eval(elements.get(3), environment);
+
             case "LAMBDA":
+                // Создание функции с параметрами, телом и текущим окружением
                 return LispValue.function(
                         elements.get(1),
                         elements.get(2),
                         environment);
+
             case "LET":
+                // Создание локального окружения и вычисление выражения
                 return evalLet(elements, environment);
+
             case "LETREC":
+                // Создание окружения для рекурсивных функций
                 return evalLetRec(elements, environment);
+
             default:
+                // Вызов пользовательской функции
                 return evalFunctionCall(elements, environment);
         }
     }
 
     private LispValue quote(int address) {
-        if (address == Ast.NIL) {
-            return LispValue.nil();
-        }
-
         if (ast.isAtom(address)) {
             String value = ast.getAtom(address);
 
@@ -95,9 +106,13 @@ public class Evaluator {
         }
 
         List<Integer> elements = ast.getElements(address);
+
+        // Создание пустого списка для формирования результата
         LispValue result = LispValue.nil();
 
+        // Обход элементов списка в обратном порядке
         for (int i = elements.size() - 1; i >= 0; i--) {
+            // Добавление элемента в начало нового списка
             result = LispValue.cons(quote(elements.get(i)), result);
         }
 
@@ -109,28 +124,36 @@ public class Evaluator {
             Environment environment,
             String operation) {
 
+        // Вычисление первого аргумента и проверка, что он является числом
         BigInteger left = requireNumber(eval(elements.get(1), environment));
+
+        // Вычисление второго аргумента и проверка, что он является числом
         BigInteger right = requireNumber(eval(elements.get(2), environment));
 
         switch (operation) {
             case "ADD":
                 return LispValue.number(left.add(right));
+
             case "SUB":
                 return LispValue.number(left.subtract(right));
+
             case "MUL":
             case "MULT":
                 return LispValue.number(left.multiply(right));
+
             case "DIV":
             case "DIVE":
                 if (right.equals(BigInteger.ZERO)) {
                     throw new IllegalArgumentException("Деление на ноль");
                 }
                 return LispValue.number(left.divide(right));
+
             case "REM":
                 if (right.equals(BigInteger.ZERO)) {
                     throw new IllegalArgumentException("Деление на ноль");
                 }
                 return LispValue.number(left.remainder(right));
+
             default:
                 throw new IllegalStateException("Неизвестная арифметическая операция");
         }
@@ -142,6 +165,7 @@ public class Evaluator {
             String operation) {
 
         LispValue left = eval(elements.get(1), environment);
+
         LispValue right = eval(elements.get(2), environment);
 
         boolean result;
@@ -172,6 +196,7 @@ public class Evaluator {
             case NIL:
                 return true;
             case CONS:
+                // Рекурсивное сравнение первых элементов и остатков списков
                 return equal(left.getHead(), right.getHead())
                         && equal(left.getTail(), right.getTail());
             case FUNCTION:
@@ -182,22 +207,10 @@ public class Evaluator {
     }
 
     private LispValue car(LispValue value) {
-        if (value.isNil()) {
-            return LispValue.nil();
-        }
-
-        if (!value.isCons()) {
-            throw new IllegalArgumentException("CAR: ожидается список");
-        }
-
         return value.getHead();
     }
 
     private LispValue cdr(LispValue value) {
-        if (value.isNil()) {
-            return LispValue.nil();
-        }
-
         if (!value.isCons()) {
             throw new IllegalArgumentException("CDR: ожидается список");
         }
@@ -218,9 +231,11 @@ public class Evaluator {
             Environment environment) {
 
         Environment local = new Environment(environment);
+
         List<String> names = new ArrayList<>();
         List<LispValue> values = new ArrayList<>();
 
+        // Получение переменных и вычисление их значений
         for (int i = 2; i < elements.size(); i++) {
             List<Integer> binding = ast.getElements(elements.get(i));
 
@@ -228,10 +243,12 @@ public class Evaluator {
             values.add(eval(binding.get(1), environment));
         }
 
+        // Добавление переменных в новое окружение
         for (int i = 0; i < names.size(); i++) {
             local.define(names.get(i), values.get(i));
         }
 
+        // Вычисление основного выражения
         return eval(elements.get(1), local);
     }
 
@@ -242,10 +259,14 @@ public class Evaluator {
         Environment local = new Environment(environment);
 
         for (int i = 2; i < elements.size(); i++) {
+            // Получ-е объявления функции
             List<Integer> binding = ast.getElements(elements.get(i));
+
             String name = ast.getAtom(binding.get(0));
+
             List<Integer> lambda = ast.getElements(binding.get(1));
 
+            // Добавление функции в новое окружение
             local.define(
                     name,
                     LispValue.function(lambda.get(1), lambda.get(2), local));
@@ -254,11 +275,14 @@ public class Evaluator {
         return eval(elements.get(1), local);
     }
 
+    /// Вызов пользовательской функции
     private LispValue evalFunctionCall(
             List<Integer> elements,
             Environment environment) {
 
         String name = ast.getAtom(elements.get(0));
+
+        // Поиск функции в текущем или родительском окружении
         LispValue function = environment.lookup(name);
 
         if (!function.isFunction()) {
@@ -266,6 +290,7 @@ public class Evaluator {
         }
 
         List<Integer> parameters = ast.getElements(function.getParameters());
+
         int expected = parameters.size();
         int actual = elements.size() - 1;
 
@@ -277,15 +302,19 @@ public class Evaluator {
 
         Environment local = new Environment(function.getEnvironment());
 
+        // Передача аргументов в параметры функции
         for (int i = 0; i < expected; i++) {
             String parameter = ast.getAtom(parameters.get(i));
+
             LispValue value = eval(elements.get(i + 1), environment);
 
+            // Сохранение значения аргумента под именем параметра
             local.define(parameter, value);
         }
 
         return eval(function.getBody(), local);
     }
+
 
     private BigInteger requireNumber(LispValue value) {
         if (!value.isNumber()) {
@@ -311,7 +340,9 @@ public class Evaluator {
                 int tail = Ast.NIL;
                 List<LispValue> elements = value.toList();
 
+                //восстан-м список в обратном порядке
                 for (int i = elements.size() - 1; i >= 0; i--) {
+                    //преобразуем элемент и добавляем в начало списка
                     tail = ast.createCons(toAst(elements.get(i)), tail);
                 }
 

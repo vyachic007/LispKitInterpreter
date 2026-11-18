@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LispValue {
+public class LispValue { ////представление значений во время вычислений
     public enum Type {
         NUMBER,
         SYMBOL,
@@ -44,6 +44,7 @@ public class LispValue {
         this.environment = environment;
     }
 
+    /// Создаем объекты определенного типа
     public static LispValue number(BigInteger value) {
         return new LispValue(Type.NUMBER, value, null, null, null, -1, -1, null);
     }

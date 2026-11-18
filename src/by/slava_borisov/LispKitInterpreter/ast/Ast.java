@@ -38,16 +38,6 @@ public class Ast {
         return cell.atom;
     }
 
-    public int getHead(int address) {
-        checkConsAddress(address);
-        return memory.get(address).head;
-    }
-
-    public int getTail(int address) {
-        checkConsAddress(address);
-        return memory.get(address).tail;
-    }
-
     public int parse(String input) {
         memory.clear();
         tokens.clear();
@@ -141,10 +131,6 @@ public class Ast {
     }
 
     void validateExpression(int address) {
-        if (address == NIL) {
-            return;
-        }
-
         Cell cell = memory.get(address);
 
         if (cell.isAtom()) {
@@ -225,8 +211,7 @@ public class Ast {
         if (function == NIL
                 || !memory.get(function).isAtom()
                 || !isIdentifier(memory.get(function).atom)) {
-            throw new IllegalArgumentException(
-                    "Имя вызываемой функции должно быть идентификатором");
+            throw new IllegalArgumentException("Имя вызываемой функции должно быть идентификатором");
         }
 
         for (int i = 1; i < elements.size(); i++) {
