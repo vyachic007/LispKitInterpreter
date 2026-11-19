@@ -42,19 +42,20 @@ public class LispKitConsole {
                 System.out.println("\nЯчейки памяти исходного AST:");
                 ast.printMemory();
 
+                /// Инициализация эмулятора и окружения
                 Evaluator evaluator = new Evaluator(ast);
                 Environment environment = new Environment();
-                environment.define("X", LispValue.cons(
-                        LispValue.symbol("G"),
-                        LispValue.nil()
-                ));
 
+                /// Передача построенного абстрактного синтаксического дерева в эмулятор
                 LispValue result = evaluator.eval(root, environment);
+
+                /// Получение преобразованного абстрактного синтаксического дерева в результате работы эмулятора
                 int resultRoot = evaluator.toAst(result);
 
                 System.out.println("\nРезультат вычисления:");
                 System.out.println(ast.restore(resultRoot));
 
+                /// Обход преобразованного АСД и вывод результата
                 System.out.println("\nЛогическое АСД результата:");
                 ast.printLogicalTree(resultRoot, "", true);
 
