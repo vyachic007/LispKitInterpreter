@@ -143,4 +143,22 @@ public class LispValue { ////представление значений во в
 
         return result;
     }
+
+    @Override
+    public String toString() {
+        switch (getType()) {
+            case NUMBER:
+                return getNumber().toString();
+            case SYMBOL:
+                return getSymbol();
+            case NIL:
+                return "()";
+            case CONS:
+                return toList().toString();
+            case FUNCTION:
+                return "<function>";
+            default:
+                return "?";
+        }
+    }
 }

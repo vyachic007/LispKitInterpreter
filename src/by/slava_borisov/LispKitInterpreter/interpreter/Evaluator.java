@@ -13,6 +13,14 @@ public class Evaluator {
         this.ast = ast;
     }
 
+    private boolean isBoolean(LispValue value) {
+        if (value.isNil()) {
+            return true;                                      // F
+        }
+        return value.getType() == LispValue.Type.SYMBOL
+                && "T".equals(value.getSymbol());              // T
+    }
+
     public LispValue eval(int address, Environment environment) {
         if (ast.isAtom(address)) {
             String atom = ast.getAtom(address);
@@ -23,6 +31,10 @@ public class Evaluator {
 
             if (atom.equalsIgnoreCase("T")) {
                 return LispValue.symbol("T");
+            }
+
+            if (atom.equalsIgnoreCase("F")) {
+                return LispValue.nil();
             }
 
             // Поиск значения переменной в текущем или родительском окружении
@@ -66,12 +78,19 @@ public class Evaluator {
             case "ATOM":
                 return atom(eval(elements.get(1), environment));
 
-            case "COND":
-                // Проверка условия и выбор выражения для вычисления
-                if (isTrue(eval(elements.get(1), environment))) {
+            case "COND": {
+                LispValue condition = eval(elements.get(1), environment);
+
+                if (!isBoolean(condition)) {
+                    throw new IllegalArgumentException(
+                            "COND: условие должно быть T или F, получено: " + condition);
+                }
+
+                if (isTrue(condition)) {
                     return eval(elements.get(2), environment);
                 }
                 return eval(elements.get(3), environment);
+            }
 
             case "LAMBDA":
                 // Создание функции с параметрами, телом и текущим окружением
@@ -95,6 +114,10 @@ public class Evaluator {
     }
 
     private LispValue quote(int address) {
+        if (address == Ast.NIL) {
+            return LispValue.nil();
+        }
+
         if (ast.isAtom(address)) {
             String value = ast.getAtom(address);
 
@@ -107,12 +130,9 @@ public class Evaluator {
 
         List<Integer> elements = ast.getElements(address);
 
-        // Создание пустого списка для формирования результата
         LispValue result = LispValue.nil();
 
-        // Обход элементов списка в обратном порядке
         for (int i = elements.size() - 1; i >= 0; i--) {
-            // Добавление элемента в начало нового списка
             result = LispValue.cons(quote(elements.get(i)), result);
         }
 
@@ -232,14 +252,18 @@ public class Evaluator {
 
         Environment local = new Environment(environment);
 
+        //списки имен и их значений
         List<String> names = new ArrayList<>();
         List<LispValue> values = new ArrayList<>();
 
         // Получение переменных и вычисление их значений
         for (int i = 2; i < elements.size(); i++) {
+            // Одно объявление: имя, значение
             List<Integer> binding = ast.getElements(elements.get(i));
 
+            // Имя переменной
             names.add(ast.getAtom(binding.get(0)));
+            // Значение вычисляем в СТАРОМ environment
             values.add(eval(binding.get(1), environment));
         }
 
@@ -259,14 +283,16 @@ public class Evaluator {
         Environment local = new Environment(environment);
 
         for (int i = 2; i < elements.size(); i++) {
-            // Получ-е объявления функции
+            //  // Получаем одно объявление: имя, значение
             List<Integer> binding = ast.getElements(elements.get(i));
 
+            // Имя функции типо "SUM"
             String name = ast.getAtom(binding.get(0));
 
+            // Разбираем (LAMBDA ...) на части: LAMBDA, параметры, тело
             List<Integer> lambda = ast.getElements(binding.get(1));
 
-            // Добавление функции в новое окружение
+            // Кладём функцию в local; окружение = local → функция видит себя → рекурсия
             local.define(
                     name,
                     LispValue.function(lambda.get(1), lambda.get(2), local));
@@ -304,7 +330,7 @@ public class Evaluator {
 
         // Передача аргументов в параметры функции
         for (int i = 0; i < expected; i++) {
-            String parameter = ast.getAtom(parameters.get(i));
+            String parameter = ast.getAtom(parameters.get(i)); //SUM например
 
             LispValue value = eval(elements.get(i + 1), environment);
 
